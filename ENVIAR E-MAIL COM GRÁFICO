@@ -1,0 +1,79 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# Importanto as bibliotecas para ter código base64
+import matplotlib.pyplot as plt
+import io
+import base64
+
+# Importando as bibliotecas necessário para enviar o email
+
+import requests as r 
+import json
+import pprint as pp
+
+# Função para gerar gráfico e converter para base64
+def gerar_grafico_base64():
+    # Criar o gráfico
+    plt.figure()
+    plt.plot([1, 2, 3, 4], [10, 20, 25, 30])
+    plt.title('Exemplo de Gráfico')
+
+    # Salvar o gráfico no buffer de memória
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+
+    # Codificar o conteúdo do buffer para base64
+    grafico_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    # Fechar o buffer
+    buffer.close()
+
+    return grafico_base64
+
+
+# Exibir o base64 do gráfico gerado
+grafico_base64 = gerar_grafico_base64()
+
+try:
+    # Aqui será onde o destinatário vai enviar o e-mail
+    url = os.getenv("API")
+
+    # Qual será a mensagem 
+    mensagem = """
+
+    <html>
+        <body>
+            Boa tarde!!
+            <br>
+            Meu nome é Renan Garcia Araujo Gadelha.
+            <br>
+            Estou te informando para você fazer o FCA da PC 048.
+            <br><br>
+            Att, Renan Garcia Araujo Gadelha.
+        </body>
+    </html>
+    
+    """
+
+    
+    # A imagem enviada no email
+    base64img = f"{grafico_base64}"
+
+    # configuração do email
+    body_r = {
+        "message": mensagem,
+        "image": base64img,
+        "subject": "Relatório disponibilidade",
+        "receiver": os.getenv("EMAIL")
+    }
+    req = r.post(url, json=body_r)
+    
+    # Print enviado com sucesso
+    print("E-mail enviado com sucesso !!")
+
+except Exception as e:
+    print("Ocorreu um erro oara enviar o E-mail")

@@ -1,0 +1,72 @@
+import pandas as pd
+from datetime import datetime, timedelta
+
+
+# Defina a data inicial e final
+data_inicial = datetime(2024, 1, 1)
+data_final = (datetime.now() - timedelta(days=1))
+
+# Crie uma lista de datas
+datas = pd.date_range(start=data_inicial, end=data_final, freq='D')
+
+# Crie um DataFrame com a lista de datas
+df = pd.DataFrame({'Data': datas})
+
+# Formate a coluna de data como string no formato 'dd/mm/yyyy'
+df['Data'] = df['Data'].dt.strftime('%Y/%m/%d')
+df["Data"] = pd.to_datetime(df['Data'])
+
+# Importando uma máquina de exemplo
+df["Maquina"] = "PC 014"
+
+#iniciando tratamento
+lista = []
+data_hoje = None
+data_maior = None
+hora_inicial = None
+hora_final = None
+data_menor_os = None
+lista_data = []
+
+# Importando a base de dados
+os = pd.read_excel("C:/Users/adm/Desktop/ORDEM DE SERVIÇO.xlsx")
+
+
+for index, row in df.iterrows():
+    # Filtrando as ordens de serviço para a data atual
+   
+    oss = os[(row['Data'].date() == os['DATA PARADA'].dt.date)]
+
+    if not oss.empty:
+
+        for i,data in oss.iterrows():
+            data_hoje = data['DATA PARADA'].date()
+            lista_data.append(data_hoje)
+            data_maior = data['DATA FUNCIONAMENTO'].date()
+            hora_inicial = data['HORAS PARADAS']
+            hora_final = data['HORA FUNCIONOU']
+            
+            if lista_data[0] < data_hoje:
+                data_hoje = lista_data[0] 
+
+            elif  data_maior == data['DATA FUNCIONAMENTO']:
+                lista_data.clear()
+                lista_data.append(data_final)
+
+
+    
+    if row['Data'].date() <= data_maior:
+        
+        if row['Data'].date() <= data_hoje:
+            lista.append(24 - hora_inicial )
+        
+        elif row['Data'].date() == data_maior:
+            lista.append(hora_final)
+
+        else:
+            lista.append(24)
+    else:
+        lista.append(0)
+
+df['PARADA'] = lista
+print(df)
